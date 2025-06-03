@@ -1,4 +1,4 @@
-# Textify - Extracción de texto de imágenes (OCR) Gratis
+# Textify - Extracción de texto de imágenes (OCR) Local
 
 ![Textify Logo](https://img.icons8.com/color/96/000000/text.png)
 
