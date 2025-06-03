@@ -23,10 +23,12 @@
     </header>
 
     <main id="main-content">
-        <div class="hero">
-            <h1>Extrae texto de imágenes al instante</h1>
-            <p>Convierte imágenes con texto a texto editable en segundos. Totalmente gratuito y fácil de usar.</p>
-        </div>
+    <!-- Información del archivo seleccionado, anunciada de forma cortés si cambia -->
+    <div class="file-info" aria-live="polite"></div>
+    <div class="hero">
+        <h1>Extrae texto de imágenes al instante</h1>
+        <p>Convierte imágenes con texto a texto editable en segundos. Totalmente gratuito y fácil de usar.</p>
+    </div>
 
         <div class="upload-container">
             <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
@@ -41,7 +43,8 @@
                     <input type="file" id="file-input" name="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.tiff" aria-describedby="file-format-description" required>
                     <p id="file-format-description" class="file-formats">Formatos permitidos: PNG, JPG, JPEG, GIF, BMP, TIFF. Tamaño máximo: 16MB.</p>
                 </div>
-                <div id="file-error-message" class="error-message" role="alert" aria-live="assertive" style="display: none; margin-top: 10px;"></div>
+                <!-- Mensaje de error de validación de archivo, anunciado inmediatamente por lectores de pantalla -->
+<div id="file-error-message" class="error-message" role="alert" aria-live="assertive" style="display: none; margin-top: 10px;"></div>
                 <div class="language-selector-container">
                     <label for="language-select" class="language-label">Idioma del texto:</label>
                     <select name="language" id="language-select" class="language-select">
@@ -55,7 +58,7 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-primary" id="submit-button" disabled>
+                <button id="submit-button" type="submit" class="btn btn-primary" disabled>
                     <i class="fas fa-magic" aria-hidden="true"></i>
                     Extraer texto
                 </button>
@@ -118,15 +121,20 @@
 
         function displayFileError(message) {
             if (fileErrorMessage) {
-                fileErrorMessage.textContent = message;
-                fileErrorMessage.style.display = message ? 'block' : 'none';
+                if (message) {
+                    fileErrorMessage.innerHTML = '<i class="fas fa-exclamation-triangle" aria-hidden="true" style="margin-right: 0.5em;"></i>' + message;
+                    fileErrorMessage.style.display = 'block';
+                } else {
+                    fileErrorMessage.innerHTML = '';
+                    fileErrorMessage.style.display = 'none';
+                }
             }
         }
 
         function validateFile(file) {
             if (!file) {
                 submitButton.disabled = true;
-                return 'Por favor, selecciona un archivo.';
+                return 'Por favor, selecciona un archivo de imagen para continuar.';
             }
 
             const fileName = file.name.toLowerCase();
@@ -134,12 +142,12 @@
 
             if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
                 submitButton.disabled = true;
-                return `Formato de archivo no permitido. Permitidos: ${ALLOWED_EXTENSIONS.join(', ')}.`;
+                return 'Formato de archivo no permitido. Solo se aceptan imágenes PNG, JPG, JPEG, GIF, BMP o TIFF.';
             }
 
             if (file.size > MAX_FILE_SIZE_BYTES) {
                 submitButton.disabled = true;
-                return `El archivo es demasiado grande. Tamaño máximo: ${MAX_FILE_SIZE_MB}MB.`;
+                return `El archivo seleccionado supera el tamaño máximo permitido (16MB). Por favor, elige un archivo más pequeño.`;
             }
 
             displayFileError(''); // Limpiar errores previos
@@ -148,12 +156,24 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Resetear formulario y limpiar info archivo al cargar
+            if (uploadForm) {
+                uploadForm.reset();
+            }
+            if (fileInfo) {
+                fileInfo.textContent = '';
+                fileInfo.style.display = 'none';
+            }
+            if (submitButton) {
+                submitButton.disabled = true; // Deshabilitado SIEMPRE al cargar
+            }
+            if (fileErrorMessage) {
+                fileErrorMessage.textContent = '';
+                fileErrorMessage.style.display = 'none';
+            }
             if (loadingIndicator) {
                 loadingIndicator.hidden = true;
                 loadingIndicator.setAttribute('aria-busy', 'false');
-            }
-            if (submitButton) {
-                submitButton.disabled = true; // Deshabilitado por defecto
             }
         });
 

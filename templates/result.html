@@ -25,17 +25,24 @@
     <main id="main-content">
         <div class="result-container">
             <div class="result-header">
-                <h1>Resultado de la extracción</h1>
+                <h1 class="result-title">Resultado de la extracción</h1>
+                <!-- Switch para activar feedback auditivo y vibración debajo del título -->
+                <div class="feedback-toggle" style="margin: 1rem 0 0.5rem 0; display: flex; align-items: center; gap: 0.5em;">
+                  <input type="checkbox" id="feedback-toggle" aria-checked="false" aria-label="Activar feedback auditivo y vibración">
+                  <label for="feedback-toggle" style="cursor:pointer; user-select:none;">Activar feedback auditivo y vibración</label>
+                </div>
+                <!-- Audio para feedback -->
+                <audio id="success-audio" src="{{ url_for('static', filename='audio/success-chime.mp3') }}" preload="auto"></audio>
                 <div class="result-actions">
-                    <button id="copy-btn" class="btn" aria-label="Copiar texto al portapapeles">
+                    <button id="copy-btn" class="btn" aria-label="Copiar texto al portapapeles" accesskey="c">
                         <i class="far fa-copy" aria-hidden="true"></i>
                         Copiar
                     </button>
-                    <button id="download-btn" class="btn btn-outline" aria-label="Descargar como archivo de texto">
+                    <button id="download-btn" class="btn btn-outline" aria-label="Descargar como archivo de texto" accesskey="d">
                         <i class="fas fa-download" aria-hidden="true"></i>
                         Descargar TXT
                     </button>
-                    <a href="{{ url_for('index') }}" class="btn btn-outline" aria-label="Subir otra imagen">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline" aria-label="Subir otra imagen" accesskey="n">
                         <i class="fas fa-upload" aria-hidden="true"></i>
                         Nueva extracción
                     </a>
@@ -58,14 +65,13 @@
                             <p class="ocr-language-info"><i class="fas fa-language" aria-hidden="true"></i> Idioma: {{ ocr_language }}</p>
                         {% endif %}
                         <div class="text-actions">
-                            <button id="select-all" class="btn-text" aria-label="Seleccionar todo el texto">
+                            <button id="select-all" class="btn-text" aria-label="Seleccionar todo el texto" accesskey="a">
                                 <i class="far fa-check-square" aria-hidden="true"></i>
                                 Seleccionar todo
                             </button>
                         </div>
                     </div>
-                    <div id="text-result" class="text-result" role="textbox" contenteditable="true" aria-multiline="true" 
-                         aria-label="Texto extraído de la imagen">
+                    <div id="text-result" class="text-result" role="textbox" tabindex="0" contenteditable="true" aria-multiline="true" aria-label="Texto extraído de la imagen">
                         {% if extracted_text %}
                             {{ extracted_text }}
                         {% else %}
@@ -96,7 +102,11 @@
         </div>
     </footer>
 
-    <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+    <!-- Notificación toast accesible, anunciada por lectores de pantalla -->
+<div id="toast" class="toast" role="status" aria-live="polite" style="display: none;">
+        <i class="fas fa-check-circle" aria-hidden="true" style="color: #10b981; margin-right: 0.5em;"></i>
+        <span id="toast-message"></span>
+    </div>
 
     <script>
         // Mejora progresiva
@@ -109,15 +119,43 @@
         const selectAllBtn = document.getElementById('select-all');
         const textResult = document.getElementById('text-result');
         const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // Leer preferencia de feedback
+        const feedbackToggle = document.getElementById('feedback-toggle');
+        const successAudio = document.getElementById('success-audio');
+        // Inicializar preferencia desde localStorage
+        if (feedbackToggle) {
+            const saved = localStorage.getItem('feedbackEnabled');
+            feedbackToggle.checked = saved === 'true';
+            feedbackToggle.setAttribute('aria-checked', feedbackToggle.checked ? 'true' : 'false');
+            feedbackToggle.addEventListener('change', () => {
+                localStorage.setItem('feedbackEnabled', feedbackToggle.checked);
+                feedbackToggle.setAttribute('aria-checked', feedbackToggle.checked ? 'true' : 'false');
+            });
+        }
+        function playFeedback() {
+            if (feedbackToggle && feedbackToggle.checked) {
+                // Vibración (si es compatible)
+                if (navigator.vibrate) navigator.vibrate(80);
+                // Sonido
+                if (successAudio) {
+                    successAudio.currentTime = 0;
+                    successAudio.play();
+                }
+            }
+        }
 
         // Copiar al portapapeles
         copyBtn.addEventListener('click', async () => {
             try {
                 await navigator.clipboard.writeText(textResult.textContent);
                 showToast('¡Texto copiado al portapapeles!');
+                playFeedback();
             } catch (err) {
                 console.error('Error al copiar:', err);
                 showToast('No se pudo copiar el texto', 'error');
+                playFeedback();
             }
         });
 
@@ -136,6 +174,7 @@
             document.body.removeChild(element);
             
             showToast('¡Descarga iniciada!');
+            playFeedback();
         });
 
         // Seleccionar todo el texto
@@ -146,18 +185,20 @@
             selection.removeAllRanges();
             selection.addRange(range);
             showToast('Todo el texto seleccionado');
+            playFeedback();
         });
 
         // Mostrar notificación toast
         function showToast(message, type = 'success') {
-            toast.textContent = message;
-            toast.className = 'toast show';
-            toast.setAttribute('data-type', type);
-            
-            // Ocultar después de 3 segundos
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            if (toast && toastMessage) {
+                toastMessage.textContent = message;
+                toast.style.display = 'flex';
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    toast.style.display = 'none';
+                }, 2500);
+            }
         }
 
         // Mejorar accesibilidad del teclado
