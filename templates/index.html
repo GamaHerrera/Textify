@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Extrae texto de imágenes de forma rápida y sencilla con nuestro OCR online gratuito. Soporta múltiples formatos de imagen y es compatible con varios idiomas.">
+    <title>Extraer texto de imágenes | Textify - OCR Online Gratuito</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="/" class="logo" aria-label="Inicio">
+                <i class="fas fa-text-height" aria-hidden="true"></i>
+                <span>Textify</span>
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero">
+            <h1>Extrae texto de imágenes al instante</h1>
+            <p>Convierte imágenes con texto a texto editable en segundos. Totalmente gratuito y fácil de usar.</p>
+        </div>
+
+        <div class="upload-container">
+            <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
+                <div id="drop-area" class="upload-area" role="region" aria-labelledby="drop-area-label">
+                    <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
+                    <h2 id="drop-area-label">Arrastra y suelta tu imagen aquí</h2>
+                    <p>o</p>
+                    <label for="file-upload" class="btn">
+                        <i class="fas fa-folder-open" aria-hidden="true"></i>
+                        Seleccionar archivo
+                    </label>
+                    <input type="file" name="file" id="file-upload" accept="image/*" required 
+                           aria-describedby="file-upload-help">
+                    <p id="file-upload-help" class="file-info" aria-live="polite">
+                        Formatos soportados: JPG, PNG, GIF, BMP, TIFF
+                    </p>
+                </div>
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <i class="fas fa-magic" aria-hidden="true"></i>
+                    Extraer texto
+                </button>
+            </form>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <i class="fas fa-bolt" aria-hidden="true"></i>
+                <h3>Rápido y sencillo</h3>
+                <p>Extrae texto de imágenes en cuestión de segundos con solo unos clics.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-lock" aria-hidden="true"></i>
+                <h3>Privacidad garantizada</h3>
+                <p>Tus archivos se procesan en tu navegador y no se almacenan en nuestros servidores.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-language" aria-hidden="true"></i>
+                <h3>Múltiples idiomas</h3>
+                <p>Soporte para más de 100 idiomas diferentes para una extracción precisa.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-links">
+                <a href="#" aria-label="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+            </div>
+            <p class="copyright">&copy; 2025 Textify. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="false" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Procesando imagen, por favor espera...</p>
+    </div>
+
+    <script>
+        // Mejora progresiva
+        document.documentElement.classList.remove('no-js');
+        document.documentElement.classList.add('js');
+
+        // Elementos del DOM
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-upload');
+        const fileInfo = document.querySelector('.file-info');
+        const uploadForm = document.getElementById('upload-form');
+        const loadingIndicator = document.getElementById('loading');
+        
+        // Asegurarse de que el indicador de carga esté oculto al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadingIndicator.hidden = true;
+            loadingIndicator.setAttribute('aria-busy', 'false');
+        });
+
+        // Manejar arrastrar y soltar
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Resaltar área de soltado
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.classList.add('dragover');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('dragover');
+        }
+
+
+        // Manejar archivos soltados
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length) {
+                fileInput.files = files;
+                updateFileInfo(files[0]);
+            }
+        }
+
+        // Actualizar información del archivo seleccionado
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                updateFileInfo(this.files[0]);
+            }
+        });
+
+        function updateFileInfo(file) {
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2); // Convertir a MB
+            fileInfo.innerHTML = `
+                <i class="fas fa-file-image" aria-hidden="true"></i>
+                <span>${file.name} (${fileSize} MB)</span>
+            `;
+            fileInfo.setAttribute('aria-label', `Archivo seleccionado: ${file.name}, tamaño: ${fileSize} MB`);
+        }
+
+        // Mostrar indicador de carga al enviar el formulario
+        uploadForm.addEventListener('submit', function() {
+            if (fileInput.files.length) {
+                loadingIndicator.hidden = false;
+                document.body.style.overflow = 'hidden';
+                window.scrollTo(0, 0);
+            }
+        });
+
+        // Mejorar accesibilidad del teclado
+        dropArea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        // Manejar la tecla Escape para cerrar cualquier modal o diálogo
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                loadingIndicator.hidden = true;
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
+</body>
+</html>
