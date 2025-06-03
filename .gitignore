@@ -1,0 +1,26 @@
+# Entorno virtual
+venv/
+env/
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Variables de entorno
+.env
+
+# Archivos de desarrollo
+.DS_Store
+.idea/
+.vscode/
+
+# Archivos de carga
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Archivos de caché
+.cache/
+
+# Archivos de configuración local
+config_local.py

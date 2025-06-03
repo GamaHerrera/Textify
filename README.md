@@ -4,34 +4,64 @@
 
 Textify es una aplicación web gratuita y de código abierto que permite extraer texto de imágenes utilizando tecnología OCR (Reconocimiento Óptico de Caracteres). Con una interfaz intuitiva y fácil de usar, Textify convierte cualquier imagen con texto en texto editable en cuestión de segundos.
 
-## Características ✨
+- Python 3.7 o superior
+- Tesseract OCR instalado en tu sistema
 
-- **Totalmente gratuito**: Sin suscripciones ni límites de uso
-- **Fácil de usar**: Interfaz intuitiva con arrastrar y soltar
-- **Rápido**: Procesamiento en segundos
-- **Preciso**: Soporte para múltiples idiomas
-- **Privado**: Las imágenes se procesan en tu navegador
-- **Sin registro**: Comienza a usar sin necesidad de crear una cuenta
-- **Accesible**: Diseñado pensando en la accesibilidad
+## Instalación en Windows
 
-## Cómo usar 🚀
+1. **Instala Tesseract OCR**:
+   - Descarga el instalador desde [UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki)
+   - Ejecuta el instalador y anota la ruta de instalación (por defecto: `C:\Program Files\Tesseract-OCR\tesseract.exe`)
 
-1. **Sube una imagen** arrastrándola al área designada o haciendo clic en "Seleccionar archivo"
-2. **Espera** a que Textify procese la imagen (solo unos segundos)
-3. **Copia** el texto extraído o **descárgalo** como archivo de texto
+2. **Clona o descarga este repositorio**
 
-### Formatos soportados
-- **Imágenes**: JPG, PNG, GIF, BMP, TIFF
-- **Idiomas**: Soporte para múltiples idiomas (inglés, español, francés, alemán, y más)
+3. **Instala las dependencias**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Tecnologías utilizadas 🛠️
+## Uso
+
+1. **Configura la ruta de Tesseract** (si es necesario):
+   - Abre `app.py` y actualiza la ruta en la línea:
+     ```python
+     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+     ```
+
+2. **Ejecuta la aplicación**:
+   ```bash
+   python app.py
+   ```
+
+3. **Abre tu navegador** en [http://127.0.0.1:5000](http://127.0.0.1:5000)
+
+## Características
+
+- Extrae texto de imágenes con un solo clic
+- Soporta múltiples formatos: JPG, PNG, GIF, BMP, TIFF
+- Interfaz intuitiva y fácil de usar
+- Procesamiento local (tus imágenes no salen de tu computadora)
+- Sin límite de uso
+
+## Solución de problemas
+
+Si la aplicación no funciona:
+1. Verifica que Tesseract esté instalado correctamente
+2. Asegúrate de que la ruta en `app.py` sea correcta
+3. Revisa la consola para mensajes de error
+
+## Licencia
+
+Este proyecto está bajo la licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+
+## Tecnologías utilizadas 
 
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **Backend**: Python con Flask
 - **OCR**: Tesseract OCR
 - **Diseño**: Responsivo y accesible
 
-## Instalación local 💻
+## Instalación local 
 
 Si deseas ejecutar Textify en tu máquina local, sigue estos pasos:
 
