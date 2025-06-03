@@ -557,19 +557,20 @@ footer {
 /* Skip Link */
 .skip-link {
     position: absolute;
-    top: -40px; /* Oculto fuera de la pantalla */
     left: 0;
+    /* top: 0; /* Se puede omitir o poner en 0, el transform lo maneja */
     background-color: var(--primary-color);
     color: white;
     padding: 10px 15px;
     z-index: 9999; /* Asegurar que esté por encima de otros elementos */
-    transition: top 0.3s ease;
     text-decoration: none;
     border-bottom-right-radius: 0.375rem;
+    transform: translateY(-110%); /* Moverlo completamente fuera de la pantalla hacia arriba */
+    transition: transform 0.3s ease; /* Transicionar la propiedad transform */
 }
 
 .skip-link:focus {
-    top: 0; /* Mostrar en la parte superior al enfocar */
+    transform: translateY(0); /* Traerlo a la vista */
     outline: 2px solid var(--primary-hover); /* Asegurar visibilidad del foco */
 }
 
