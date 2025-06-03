@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
     <header>
         <div class="nav-container">
             <a href="/" class="logo" aria-label="Inicio">
@@ -21,7 +22,7 @@
         </div>
     </header>
 
-    <main>
+    <main id="main-content">
         <div class="result-container">
             <div class="result-header">
                 <h1>Resultado de la extracción</h1>
@@ -53,6 +54,9 @@
                 <div class="text-result-container">
                     <div class="result-toolbar">
                         <h2>Texto extraído</h2>
+                        {% if ocr_language %}
+                            <p class="ocr-language-info"><i class="fas fa-language" aria-hidden="true"></i> Idioma: {{ ocr_language }}</p>
+                        {% endif %}
                         <div class="text-actions">
                             <button id="select-all" class="btn-text" aria-label="Seleccionar todo el texto">
                                 <i class="far fa-check-square" aria-hidden="true"></i>

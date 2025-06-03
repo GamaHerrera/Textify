@@ -12,6 +12,16 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'}
 
+LANGUAGE_NAMES = {
+    'spa': 'Español',
+    'eng': 'Inglés',
+    'fra': 'Francés',
+    'deu': 'Alemán',
+    'ita': 'Italiano',
+    'por': 'Portugués',
+    # Añadir más mapeos si se agregan más idiomas al frontend
+}
+
 # Asegurarse de que el directorio de subidas exista
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -62,6 +72,7 @@ def upload_file():
         return redirect(request.url)
     
     file = request.files['file']
+    selected_language = request.form.get('language', 'spa') # Obtener idioma, por defecto 'spa'
     
     # Verificar que el archivo tenga un nombre
     if file.filename == '':
@@ -102,7 +113,7 @@ def upload_file():
             img = Image.open(filepath)
             # Verificar que la imagen se pueda cargar correctamente
             img.verify()
-            img = Image.open(filepath)  # Necesario después de verify()
+            img_pil = Image.open(filepath)  # Necesario después de verify()
         except (IOError, UnidentifiedImageError) as e:
             # Eliminar el archivo si no es una imagen válida
             if os.path.exists(filepath):
@@ -110,22 +121,44 @@ def upload_file():
             flash('El archivo no es una imagen válida o está dañado.', 'error')
             return redirect(request.url)
         
-        # Procesar la imagen con Tesseract
         try:
-            text = pytesseract.image_to_string(img, lang='spa')
+            # Preprocesamiento de la imagen
+            # 1. Convertir a escala de grises
+            img_gray = img_pil.convert('L')
+
+            # 2. Aplicar binarización (umbralización)
+            threshold_value = 150  # Ajusta este valor (0-255) según sea necesario
+            img_binarized = img_gray.point(lambda x: 0 if x < threshold_value else 255, '1')
             
-            return render_template(
-                'result.html',
-                image_path=os.path.join('uploads', os.path.basename(filepath)),
-                extracted_text=text
-            )
-            
-        except Exception as e:
-            # Eliminar el archivo si hay un error en el procesamiento
+            # Procesar la imagen binarizada con Tesseract
+            app.logger.info(f"Procesando imagen con Tesseract. Idioma: {selected_language}, Umbral: {threshold_value}")
+            text = pytesseract.image_to_string(img_binarized, lang=selected_language)
+            app.logger.info(f"Texto extraído con éxito para '{filename}' en idioma '{selected_language}'.")
+
+            language_display_name = LANGUAGE_NAMES.get(selected_language, selected_language.capitalize())
+
+            return render_template('result.html', 
+                                 image_path=os.path.join('uploads', secure_filename(filename)), 
+                                 extracted_text=text,
+                                 ocr_language=language_display_name)
+        
+        except pytesseract.TesseractNotFoundError:
             if os.path.exists(filepath):
                 os.remove(filepath)
-            print(f'Error al procesar la imagen: {str(e)}')
-            flash('Ocurrió un error al procesar la imagen. Por favor, inténtalo de nuevo.', 'error')
+            app.logger.error('Tesseract no encontrado. Verifica la instalación y el PATH.')
+            flash('Error de OCR: Tesseract no está instalado o configurado correctamente. Consulta el README para obtener ayuda.', 'error')
+            return redirect(request.url)
+        except pytesseract.TesseractError as te:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            app.logger.error(f'Error de Tesseract al procesar la imagen: {str(te)}')
+            flash(f'Error de OCR: {str(te)}. Asegúrate de que los datos de idioma para "{selected_language}" ({pytesseract.get_languages(config="")[selected_language] if selected_language in pytesseract.get_languages(config="") else "Nombre Desconocido"}) estén instalados.', 'error')
+            return redirect(request.url)
+        except Exception as e:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            app.logger.error(f'Error inesperado al procesar la imagen: {str(e)}', exc_info=True)
+            flash('Ocurrió un error inesperado al procesar la imagen. Por favor, inténtalo de nuevo.', 'error')
             return redirect(request.url)
             
     except Exception as e:
