@@ -33,15 +33,24 @@
         <div class="upload-container">
             <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
                 <div id="drop-area" class="upload-area" role="region" aria-labelledby="drop-area-label">
-                    <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
-                    <h2 id="drop-area-label">Arrastra y suelta tu imagen aquí</h2>
-                    <p>o</p>
-                    <label for="file-input" class="btn">
-                        <i class="fas fa-folder-open" aria-hidden="true"></i>
-                        Seleccionar archivo
-                    </label>
-                    <input type="file" id="file-input" name="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.tiff" aria-describedby="file-format-description" required>
-                    <p id="file-format-description" class="file-formats">Formatos permitidos: PNG, JPG, JPEG, GIF, BMP, TIFF. Tamaño máximo: 16MB.</p>
+                    <div id="preview-container" class="preview-container" style="display: none;">
+                        <img id="image-preview" src="#" alt="Vista previa de la imagen seleccionada" class="preview-image">
+                        <button type="button" id="change-image-btn" class="btn btn-outline preview-change-btn" aria-label="Cambiar imagen">
+                            <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                            Cambiar imagen
+                        </button>
+                    </div>
+                    <div id="upload-ui">
+                        <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
+                        <h2 id="drop-area-label">Arrastra y suelta tu imagen aquí</h2>
+                        <p>o</p>
+                        <label for="file-input" class="btn">
+                            <i class="fas fa-folder-open" aria-hidden="true"></i>
+                            Seleccionar archivo
+                        </label>
+                        <input type="file" id="file-input" name="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.tiff" aria-describedby="file-format-description" required>
+                        <p id="file-format-description" class="file-formats">Formatos permitidos: PNG, JPG, JPEG, GIF, BMP, TIFF. Tamaño máximo: 16MB.</p>
+                    </div>
                 </div>
                 <!-- Mensaje de error de validación de archivo, anunciado inmediatamente por lectores de pantalla -->
 <div id="file-error-message" class="error-message" role="alert" aria-live="assertive" style="display: none; margin-top: 10px;"></div>
@@ -112,12 +121,73 @@
         const fileInfo = document.querySelector('.file-info');
         const loadingIndicator = document.getElementById('loading');
         const dropArea = document.getElementById('drop-area');
+        const previewContainer = document.getElementById('preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const uploadUI = document.getElementById('upload-ui');
+        const changeImageBtn = document.getElementById('change-image-btn');
 
         // Asegurarse de que el indicador de carga esté oculto al cargar la página
         // Constantes para validación
         const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff'];
         const MAX_FILE_SIZE_MB = 16;
         const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+        
+        // Función para mostrar la vista previa de la imagen
+        function showImagePreview(file) {
+            if (file && file.type.match('image.*')) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Mostrar el contenedor de vista previa
+                    previewContainer.style.display = 'flex';
+                    
+                    // Establecer la fuente de la imagen
+                    imagePreview.src = e.target.result;
+                    
+                    // Ocultar la interfaz de carga
+                    uploadUI.classList.add('hidden');
+                    
+                    // Habilitar el botón de enviar
+                    submitButton.disabled = false;
+                    
+                    // Enfocar el botón de cambiar imagen para accesibilidad
+                    setTimeout(() => {
+                        changeImageBtn.focus();
+                    }, 100);
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Función para restablecer la vista previa
+        function resetImagePreview() {
+            // Ocultar la vista previa
+            previewContainer.style.display = 'none';
+            
+            // Restablecer la fuente de la imagen
+            imagePreview.src = '#';
+            
+            // Mostrar la interfaz de carga
+            uploadUI.classList.remove('hidden');
+            
+            // Restablecer el input de archivo
+            fileInput.value = '';
+            
+            // Deshabilitar el botón de enviar
+            submitButton.disabled = true;
+            
+            // Enfocar el input de archivo para accesibilidad
+            fileInput.focus();
+        }
+        
+        // Manejar el clic en el botón de cambiar imagen
+        if (changeImageBtn) {
+            changeImageBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                resetImagePreview();
+            });
+        }
 
         function displayFileError(message) {
             if (fileErrorMessage) {
@@ -130,6 +200,13 @@
                 }
             }
         }
+
+        // Manejar la tecla Escape para restablecer la vista previa
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && previewContainer && previewContainer.style.display === 'flex') {
+                resetImagePreview();
+            }
+        });
 
         function validateFile(file) {
             if (!file) {
@@ -147,7 +224,12 @@
 
             if (file.size > MAX_FILE_SIZE_BYTES) {
                 submitButton.disabled = true;
-                return `El archivo seleccionado supera el tamaño máximo permitido (16MB). Por favor, elige un archivo más pequeño.`;
+                return `El archivo seleccionado supera el tamaño máximo permitido (${MAX_FILE_SIZE_MB}MB). Por favor, elige un archivo más pequeño.`;
+            }
+
+            if (!file.type.match('image.*')) {
+                submitButton.disabled = true;
+                return 'El archivo seleccionado no parece ser una imagen válida.';
             }
 
             displayFileError(''); // Limpiar errores previos
@@ -208,39 +290,57 @@
         dropArea.addEventListener('drop', handleDrop, false);
 
         function handleDrop(e) {
+            e.preventDefault();
             const dt = e.dataTransfer;
-            const files = dt.files;
-
-            if (files.length) {
-                fileInput.files = files;
-                updateFileInfo(files[0]);
+            const file = dt.files[0];
+            
+            if (file) {
+                const error = validateFile(file);
+                if (!error) {
+                    // Crear un nuevo DataTransfer para asignar el archivo al input
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                    
+                    updateFileInfo(file);
+                    showImagePreview(file);
+                } else {
+                    displayFileError(error);
+                }
             }
+            
+            // Quitar la clase de arrastre
+            dropArea.classList.remove('dragover');
         }
 
-        // Actualizar información del archivo seleccionado
         fileInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
                 const errorMessage = validateFile(file);
                 if (errorMessage) {
                     displayFileError(errorMessage);
+                    submitButton.disabled = true;
                 } else {
                     updateFileInfo(file);
+                    showImagePreview(file);
                 }
             } else {
                 fileInfo.textContent = '';
                 fileInfo.style.display = 'none';
                 submitButton.disabled = true;
-                displayFileError(''); // Limpiar mensajes de error si no hay archivo
+                displayFileError('');
             }
         });
 
         function updateFileInfo(file) {
+            if (!file) return;
+            
             const fileSize = (file.size / (1024 * 1024)).toFixed(2); // Convertir a MB
             fileInfo.innerHTML = `
                 <i class="fas fa-file-image" aria-hidden="true"></i>
                 <span>${file.name} (${fileSize} MB)</span>
             `;
+            fileInfo.style.display = 'block';
             fileInfo.setAttribute('aria-label', `Archivo seleccionado: ${file.name}, tamaño: ${fileSize} MB`);
         }
 
