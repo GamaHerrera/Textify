@@ -23,8 +23,7 @@
     </header>
 
     <main id="main-content">
-    <!-- Información del archivo seleccionado, anunciada de forma cortés si cambia -->
-    <div class="file-info" aria-live="polite"></div>
+
     <div class="hero">
         <h1>Extrae texto de imágenes al instante</h1>
         <p>Convierte imágenes con texto a texto editable en segundos. Totalmente gratuito y fácil de usar.</p>
@@ -118,7 +117,6 @@
         const submitButton = document.getElementById('submit-button');
         const fileErrorMessage = document.getElementById('file-error-message');
         const fileInput = document.getElementById('file-input');
-        const fileInfo = document.querySelector('.file-info');
         const loadingIndicator = document.getElementById('loading');
         const dropArea = document.getElementById('drop-area');
         const previewContainer = document.getElementById('preview-container');
@@ -242,10 +240,7 @@
             if (uploadForm) {
                 uploadForm.reset();
             }
-            if (fileInfo) {
-                fileInfo.textContent = '';
-                fileInfo.style.display = 'none';
-            }
+
             if (submitButton) {
                 submitButton.disabled = true; // Deshabilitado SIEMPRE al cargar
             }
@@ -302,7 +297,6 @@
                     dataTransfer.items.add(file);
                     fileInput.files = dataTransfer.files;
                     
-                    updateFileInfo(file);
                     showImagePreview(file);
                 } else {
                     displayFileError(error);
@@ -321,36 +315,11 @@
                     displayFileError(errorMessage);
                     submitButton.disabled = true;
                 } else {
-                    updateFileInfo(file);
                     showImagePreview(file);
                 }
             } else {
-                fileInfo.textContent = '';
-                fileInfo.style.display = 'none';
                 submitButton.disabled = true;
                 displayFileError('');
-            }
-        });
-
-        function updateFileInfo(file) {
-            if (!file) return;
-            
-            const fileSize = (file.size / (1024 * 1024)).toFixed(2); // Convertir a MB
-            fileInfo.innerHTML = `
-                <i class="fas fa-file-image" aria-hidden="true"></i>
-                <span>${file.name} (${fileSize} MB)</span>
-            `;
-            fileInfo.style.display = 'block';
-            fileInfo.setAttribute('aria-label', `Archivo seleccionado: ${file.name}, tamaño: ${fileSize} MB`);
-        }
-
-        // Mostrar indicador de carga al enviar el formulario
-        uploadForm.addEventListener('submit', function() {
-            if (fileInput.files.length && loadingIndicator) {
-                loadingIndicator.hidden = false;
-                loadingIndicator.setAttribute('aria-busy', 'true');
-                document.body.style.overflow = 'hidden'; // Evitar scroll mientras carga
-                window.scrollTo(0, 0); // Subir al inicio de la página
             }
         });
 
