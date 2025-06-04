@@ -17,7 +17,7 @@ class Config:
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'}
     
     # Configuración de Tesseract
-    TESSERACT_CMD = r'C:\Users\GamalielHerr_p61vz\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
+    TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     
     # Configuración de CORS
     SEND_FILE_MAX_AGE_DEFAULT = 0  # Desactivar caché por defecto

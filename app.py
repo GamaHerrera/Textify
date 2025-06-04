@@ -27,7 +27,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Configurar la ruta de Tesseract
 # En Windows, la ruta típica es:
-pytesseract.pytesseract.tesseract_cmd = r'C:\Users\GamalielHerr_p61vz\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 # Si no funciona, el usuario deberá ajustar esta ruta
 
 # Inicializar la verificación de tipos MIME

@@ -1,7 +1,7 @@
 # Textify - Extracción de Texto de Imágenes (OCR) Local
 
-[![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/)
-[![Flask Version](https://img.shields.io/badge/flask-2.x-orange.svg)](https://flask.palletsprojects.com/)
+[![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
+[![Flask Version](https://img.shields.io/badge/flask-2.3.3-orange.svg)](https://flask.palletsprojects.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Textify es una aplicación web gratuita y de código abierto que permite extraer texto de imágenes utilizando tecnología OCR (Reconocimiento Óptico de Caracteres). Desarrollada con Python y Flask, Textify ofrece una interfaz intuitiva, accesible y fácil de usar, permitiendo convertir imágenes con texto en contenido editable en segundos, directamente en tu máquina local.
@@ -36,9 +36,10 @@ Textify es una aplicación web gratuita y de código abierto que permite extraer
 
 ## Requisitos Previos
 
-*   **Python:** Versión 3.7 o superior.
-*   **Tesseract OCR:** Debe estar instalado en tu sistema.
+*   **Python:** Versión 3.12 o superior.
+*   **Tesseract OCR:** Debe estar instalado en tu sistema con los paquetes de idioma necesarios.
 *   **pip:** Para la gestión de paquetes de Python.
+*   **Sistema Operativo:** Windows 10/11, macOS, o Linux (probado en Windows 11).
 
 ## Instalación y Ejecución
 
@@ -66,21 +67,39 @@ Textify es una aplicación web gratuita y de código abierto que permite extraer
     ```
 
 4.  **Instala Tesseract OCR (si aún no lo has hecho):**
-    *   **Windows:** Descarga el instalador desde [Tesseract at UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki). Durante la instalación, asegúrate de incluir los paquetes de idioma que necesites y considera añadir Tesseract al PATH del sistema.
+    *   **Windows:**
+        1. Descarga el instalador desde [Tesseract at UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki)
+        2. **IMPORTANTE:** Durante la instalación, asegúrate de marcar la opción "Añadir al PATH del sistema"
+        3. Selecciona los paquetes de idioma que necesites (español, inglés, etc.)
+        4. Si olvidaste instalar los idiomas, puedes descargarlos manualmente desde [tessdata_best](https://github.com/tesseract-ocr/tessdata_best) y copiarlos a `C:\Program Files\Tesseract-OCR\tessdata\`
+    
     *   **macOS:**
         ```bash
+        # Instalar Tesseract
         brew install tesseract
-        brew install tesseract-lang # Para instalar todos los paquetes de idioma disponibles
+        
+        # Instalar todos los paquetes de idioma disponibles
+        brew install tesseract-lang
         ```
+    
     *   **Linux (Ubuntu/Debian):**
         ```bash
+        # Actualizar e instalar Tesseract
         sudo apt update
         sudo apt install tesseract-ocr
-        # Para instalar paquetes de idioma específicos (ej. español, francés, alemán):
-        sudo apt install tesseract-ocr-spa tesseract-ocr-fra tesseract-ocr-deu
-        # O para todos los idiomas disponibles (puede ser grande):
+        
+        # Instalar paquetes de idioma específicos
+        sudo apt install tesseract-ocr-spa tesseract-ocr-eng tesseract-ocr-fra tesseract-ocr-deu tesseract-ocr-ita tesseract-ocr-por
+        
+        # Instalar todos los idiomas disponibles (opcional, ocupa más espacio)
         # sudo apt install tesseract-ocr-all
         ```
+
+5. **Configura la variable de entorno TESSDATA_PREFIX (Solo Windows si es necesario):**
+   - Abre el Panel de control > Sistema > Configuración avanzada del sistema > Variables de entorno
+   - En "Variables del sistema", busca o crea una nueva variable llamada `TESSDATA_PREFIX`
+   - Establécelo como `C:\Program Files\Tesseract-OCR`
+   - Reinicia tu terminal o IDE después de hacer estos cambios
 
 5.  **Configura la Aplicación (Ruta de Tesseract):**
     *   Textify intentará encontrar Tesseract automáticamente si está en el PATH del sistema.
@@ -143,13 +162,27 @@ Textify/
 
 *   **`TesseractNotFoundError` o `pytesseract.TesseractNotFoundError`**: 
     *   Asegúrate de que Tesseract OCR esté instalado correctamente en tu sistema.
-    *   Verifica que la ruta a `tesseract.exe` (o el ejecutable de Tesseract) esté correctamente configurada en `config.py` (si lo usas) o que Tesseract esté en el PATH del sistema.
+    *   Verifica que la ruta a `tesseract.exe` (o el ejecutable de Tesseract) esté correctamente configurada en `config.py` o que Tesseract esté en el PATH del sistema.
+    *   En Windows, verifica que la ruta en `app.py` coincida con tu instalación de Tesseract.
+
+*   **Error de carga de idioma (ej: `Error opening data file .../tessdata/spa.traineddata`):**
+    *   Verifica que los archivos de idioma (`.traineddata`) estén en la carpeta `tessdata` dentro del directorio de instalación de Tesseract.
+    *   Asegúrate de que la variable de entorno `TESSDATA_PREFIX` esté configurada correctamente.
+    *   Los archivos de idioma deben tener permisos de lectura.
+
 *   **Resultados de OCR Pobres:**
-    *   Asegúrate de seleccionar el idioma correcto para el texto en la imagen.
-    *   La calidad de la imagen de entrada es crucial. Imágenes borrosas, con poca luz, con fuentes muy estilizadas o con bajo contraste pueden ser difíciles de procesar.
-    *   El preprocesamiento (escala de grises y binarización) ayuda, pero no puede resolver todos los problemas de calidad de imagen.
+    *   Selecciona el idioma correcto para el texto en la imagen.
+    *   Mejora la calidad de la imagen: buena iluminación, enfoque adecuado y contraste suficiente.
+    *   Imágenes con resolución de al menos 300 DPI funcionan mejor.
+    *   Evita imágenes borrosas, con poca luz o con fuentes estilizadas.
+
 *   **Errores de Permiso (al guardar archivos en `uploads/`):**
-    *   Asegúrate de que la aplicación tenga permisos de escritura en el directorio `uploads/` dentro de la carpeta del proyecto.
+    *   Asegúrate de que la aplicación tenga permisos de escritura en el directorio `uploads/`.
+    *   En Windows, ejecuta el IDE o terminal como administrador si es necesario.
+
+*   **Problemas con Python 3.12:**
+    *   Asegúrate de usar las versiones más recientes de las dependencias como se especifica en `requirements.txt`.
+    *   Si encuentras problemas con `python-magic-bin`, prueba instalando `python-magic` en su lugar.
 
 ## Contribuciones
 
