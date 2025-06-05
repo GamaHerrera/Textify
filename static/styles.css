@@ -1,15 +1,27 @@
 :root {
-  --primary-color: #4338ca; /* Azul más oscuro para mejor contraste */
-  --primary-hover: #3730a3; /* Tono más oscuro para hover */
-  --success-color: #047857; /* Verde más oscuro para mejor contraste */
-  --error-color: #b91c1c; /* Rojo más oscuro para mejor contraste */
-  --text-primary: #111827; /* Negro más oscuro para mejor contraste */
-  --text-secondary: #4b5563; /* Gris más oscuro para mejor contraste */
+  /* Colores primarios con mejor contraste */
+  --primary-color: #2563eb;       /* Azul más vibrante */
+  --primary-hover: #1d4ed8;      /* Azul más oscuro para hover */
+  --primary-light: #dbeafe;      /* Fondo claro para áreas interactivas */
+  --primary-50: #eff6ff;         /* Fondo muy claro */
+  --success-color: #065f46;      /* Verde más oscuro para mejor contraste */
+  --error-color: #b91c1c;        /* Rojo más oscuro para mejor contraste */
+  
+  /* Texto con máximo contraste */
+  --text-primary: #1f2937;       /* Gris muy oscuro */
+  --text-secondary: #4b5563;     /* Gris oscuro */
   --disabled-text: #6b7280;
-  --bg-light: #f9fafb;
-  --border-color: #d1d5db; /* Borde ligeramente más oscuro */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  
+  /* Fondos */
+  --bg-light: #f3f4f6;           /* Fondo de página */
+  --bg-card: #f9fafb;            /* Fondo de tarjetas - gris muy claro */
+  
+  /* Bordes y sombras */
+  --border-color: #d1d5db;       /* Borde más suave */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  
+  /* Transiciones */
   --transition: all 0.2s ease-in-out;
 }
 
@@ -190,23 +202,45 @@ main {
   transition: var(--transition);
   position: relative;
   overflow: hidden;
-  background-color: #f8fafc;
-  color: #1f2937; /* Gris oscuro para mejor contraste */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background-color: var(--primary-50);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--primary-color);
 }
 
 .upload-area:hover {
   border-color: var(--primary-hover);
-  background-color: #e0e7ff;
+  background-color: var(--primary-light);
   box-shadow: 0 0 0 2px var(--primary-hover);
   border-style: solid;
+  transform: translateY(-1px);
+}
+
+.upload-area:hover svg,
+.upload-area:hover h3,
+.upload-area:hover p {
+  opacity: 1;
+}
+
+/* Asegurar que el texto mantenga su contraste en hover */
+.upload-area:hover,
+.upload-area:hover h3,
+.upload-area:hover p {
+  color: var(--text-primary);
 }
 
 .upload-area.dragover {
-  background-color: #e0e7ff;
+  background-color: var(--primary-light);
   border-color: var(--primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Asegurar que el texto sea legible durante el drag & drop */
+.upload-area.dragover,
+.upload-area.dragover h3,
+.upload-area.dragover p {
+  color: var(--text-primary);
 }
 
 /* Mejorar contraste del texto en el botón de selección de archivo */
@@ -222,12 +256,19 @@ main {
   color: white;
 }
 
-/* Mejorar contraste en el texto alternativo "o" */
+/* Texto alternativo "o" */
 .upload-area > p {
-  color: #4b5563; /* Gris oscuro para mejor contraste */
+  color: var(--text-primary);
   font-weight: 500;
   position: relative;
   margin: 1.5rem 0;
+  transition: color 0.2s ease;
+  opacity: 0.9;
+}
+
+/* Asegurar que el texto "o" sea visible en hover */
+.upload-area:hover > p {
+  color: var(--text-primary);
 }
 
 .upload-area > p:before,
@@ -251,13 +292,17 @@ main {
 .upload-area svg {
   width: 3.5rem;
   height: 3.5rem;
-  color: #3730a3; /* Azul más oscuro para mejor contraste */
+  color: var(--primary-color);
   margin: 0 0 1.25rem;
-  filter: none; /* Eliminamos el filtro para mantener los colores puros */
+  filter: none;
   transition: transform 0.2s ease, color 0.2s ease;
+  opacity: 0.9;
 }
 
-.upload-area:hover svg {
+/* Efectos de hover y drag & drop para el ícono */
+.upload-area:hover svg,
+.upload-area.dragover svg {
+  color: var(--primary-hover);
   transform: scale(1.05);
 }
 
